@@ -1,5 +1,7 @@
 import re
 import logging
+import pandas as pd
+from pathlib import Path
 from typing import LiteralString
 from bs4 import BeautifulSoup, Tag
 from common.constants import HEADERS, USD_TO_DOP_RATE
@@ -11,8 +13,9 @@ US_THRESHOLD = 10_000.00
 RD_THRESHOLD_FOR_RENT = 1_000_000.00
 PAGE_SKIP_QUERY_NAME = "PagingPageSkip"
 PAGE_SKIPS = 0
-LIMIT_OF_APARTMENTS_PER_PAGE = 5  # 100 for no limit
+LIMIT_OF_APARTMENTS_PER_PAGE = 1  # 100 for no limit
 WEB_URL: LiteralString = f"{BASE_URL}/buscar/?do=2&ObjectType=123&PriceType=401&Locations=10095&PriceFrom=0.00&PriceTo=200000.00&SizeLotFrom=0&SizeLotTo=25000"
+CSV_FILE_NAME = "data/supercasas_data.csv"
 
 REQUEST_PARAMS: RequestParams = {
     "url": WEB_URL,
@@ -43,7 +46,7 @@ KEY_WORDS_MAPPING: dict[str, str] = {
     "location": "Localización:",
     "previous_owners": "Condición:",
     "construction_meters": "Construcción:",
-    "floor": "Nivel/Piso",
+    "floor": "Nivel/Piso:",
     "is_modificable": "Edificable:",
     "use_type": "Uso Actual:",
     "land_meters": "Terreno:",
@@ -158,7 +161,11 @@ def get_general_info(div: Tag) -> dict[str, object]:
                     continue
 
                 if key == "location" and ">" in value_text:
-                    data[key] = value_text.split(sep=">", maxsplit=1)[1].strip()
+                    city, location = map(
+                        str.strip, value_text.split(sep=">", maxsplit=1)
+                    )
+                    data["city"] = city
+                    data[key] = location
 
                 elif key in ("land_meters", "construction_meters"):
                     match: re.Match[str] | None = re.search(
@@ -272,6 +279,7 @@ def extract_apartment_data(apt_details: Tag) -> dict[str, object] | None:
         "baths": None,
         "parking": None,
         "location": None,
+        "city": None,
         "previous_owners": None,
         "construction_meters": None,
         "floor": None,
@@ -366,6 +374,12 @@ def main() -> list[dict[str, object]] | None:
     logger.info(msg="STARTING THE SCRAPING PROCESS")
     data: list[dict[str, object]] | None = scrape()
     logger.info(msg="SCRAPING PROCESS COMPLETED")
+
+    df = pd.DataFrame(data=data)
+    logger.info(msg=f"DATAFRAME SHAPE: {df.shape}")
+
+    Path(CSV_FILE_NAME).parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(path_or_buf=CSV_FILE_NAME, index=False)
 
     return data
 
