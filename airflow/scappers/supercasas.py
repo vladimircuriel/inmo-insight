@@ -9,11 +9,9 @@ from common.types import RequestParams
 from common.utils import fetch_html
 
 BASE_URL = "https://www.supercasas.com"
-US_THRESHOLD = 10_000.00
-RD_THRESHOLD_FOR_RENT = 1_000_000.00
 PAGE_SKIP_QUERY_NAME = "PagingPageSkip"
 PAGE_SKIPS = 0
-LIMIT_OF_APARTMENTS_PER_PAGE = 1  # 100 for no limit
+LIMIT_OF_APARTMENTS_PER_PAGE = 100  # 100 for no limit
 WEB_URL: LiteralString = f"{BASE_URL}/buscar/?do=2&ObjectType=123&PriceType=401&Locations=10095&PriceFrom=0.00&PriceTo=200000.00&SizeLotFrom=0&SizeLotTo=25000"
 CSV_FILE_NAME = "data/supercasas_data.csv"
 
