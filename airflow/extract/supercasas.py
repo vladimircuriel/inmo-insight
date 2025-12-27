@@ -368,7 +368,7 @@ def scrape() -> list[dict[str, object]] | None:
     return apts_data
 
 
-def main() -> list[dict[str, object]] | None:
+def extract_from_supercasas() -> list[dict[str, object]] | None:
     logger.info(msg="STARTING THE SCRAPING PROCESS")
     data: list[dict[str, object]] | None = scrape()
     logger.info(msg="SCRAPING PROCESS COMPLETED")
@@ -388,4 +388,4 @@ if __name__ == "__main__":
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
     )
     logger: logging.Logger = logging.getLogger(name=__name__)
-    main()
+    extract_from_supercasas()
