@@ -1,4 +1,5 @@
 import logging
+import time
 from bs4 import BeautifulSoup
 import requests
 
@@ -10,20 +11,21 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 def fetcher(
     fetch_params: RequestParams,
 ) -> tuple[requests.Response | None, Exception | None]:
-    """Makes an HTTP GET request to the specified URL with optional headers.
-    Args:
-        params (RequestParams): A dictionary containing the URL and optional headers.
-    Returns:
-        tuple[requests.Response | None, Exception | None]: A tuple containing the response object (
-        or None if an error occurred) and an exception object (or None if the request was successful).
-    """
-
     url: str = fetch_params["url"]
     headers: dict | None = fetch_params.get("headers")
+    delay: int = fetch_params.get("delay", 15)
 
     try:
         response: requests.Response = requests.get(url=url, headers=headers, timeout=15)
+
+        if response.status_code == 429:
+            time.sleep(delay)
+            logger.info(msg=f"RETRYING REQUEST AFTER DELAY ({url})")
+            response = requests.get(url=url, headers=headers, timeout=15)
+
         response.raise_for_status()
+        logger.info(msg=f"SUCCESSFUL REQUEST ({url})")
+
         return response, None
 
     except Exception as e:
