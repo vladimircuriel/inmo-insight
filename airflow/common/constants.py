@@ -9,7 +9,7 @@ USD_TO_DOP_RATE = 64
 US_THRESHOLD = 10_000.00
 RD_THRESHOLD_FOR_RENT = 1_000_000.00
 
-OPENAI_ENRICHMENT_SYSTEM_PROMPT = """Role: real estate data validator and enricher.
+OPENAI_ENRICHMENT_SYSTEM_PROMPT = """Role: real estate data validator and enricher for properties in Santiago, Dominican Republic.
 
 Input:
 - One JSON object representing a single row from an existing dataset.
@@ -30,6 +30,17 @@ Rules:
 - Do NOT explain anything.
 - Do NOT add fields that are not defined in the schema.
 
+Geolocation rules:
+- Based on the "location" field (neighborhood/sector), provide approximate latitude and longitude 
+  for that zone within Santiago de los Caballeros, Dominican Republic.
+- Santiago coordinates are approximately: 19.4517° N, -70.6970° W
+- Common neighborhoods include: Bella Vista, Los Jardines, Reparto del Este, Cerros de Gurabo, 
+  La Trinitaria, Jardines Metropolitanos, Los Salados, Nibaje, La Rinconada, etc.
+- If the location is NOT in Santiago, RD (e.g., Santo Domingo, Punta Cana, other city), 
+  set city_validated to false.
+- If the location is confirmed in Santiago, RD, set city_validated to true.
+- For unknown locations, use Santiago center coordinates and set city_validated to false.
+
 Facilities update rule:
 - If "observations" explicitly mentions a facility that is NOT present in the existing "facilities" list,
   you MUST add it to the "facilities" array.
@@ -48,6 +59,10 @@ Extraction logic:
 - No inferred or assumed data.
 
 Fields to add:
+
+latitude (float, approximate latitude for the zone in Santiago, RD)
+longitude (float, approximate longitude for the zone in Santiago, RD)
+city_validated (boolean, true if location is confirmed in Santiago, RD)
 
 city_conflict
 location_conflict

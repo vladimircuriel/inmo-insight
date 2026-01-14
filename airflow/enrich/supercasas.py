@@ -40,6 +40,9 @@ BATCH_ENDPOINT = "/v1/chat/completions"
 # Enrichment fields that will be added by OpenAI
 ENRICHMENT_FIELDS: list[str] = [
     # Conflict detection fields
+    "latitude",
+    "longitude",
+    "city_validated",
     "city_conflict",
     "location_conflict",
     "construction_meters_conflict",
@@ -385,7 +388,48 @@ def enrich_supercasas_data(
     )
     logger.info(f"Enriched {len(enriched_data)} apartments")
 
-    return enriched_data
+    # Filter out apartments not validated as Santiago, RD
+    validated_data = filter_validated_locations(enriched_data=enriched_data)
+    logger.info(f"Validated {len(validated_data)} apartments in Santiago, RD")
+
+    return validated_data
+
+
+def filter_validated_locations(
+    enriched_data: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """
+    Filter enriched data to only include apartments validated as being in Santiago, RD.
+
+    Args:
+        enriched_data: List of enriched apartment dictionaries
+
+    Returns:
+        Filtered list with only validated locations
+    """
+    validated: list[dict[str, Any]] = []
+    discarded: list[dict[str, Any]] = []
+
+    for row in enriched_data:
+        city_validated = row.get(
+            "city_validated", True
+        )  # Default to True for backwards compatibility
+
+        if city_validated:
+            validated.append(row)
+        else:
+            discarded.append(row)
+            logger.warning(
+                f"Discarding apartment {row.get('site_id', 'unknown')} - "
+                f"location '{row.get('location', 'unknown')}' not validated as Santiago, RD"
+            )
+
+    if discarded:
+        logger.info(
+            f"Discarded {len(discarded)} apartments with invalid/unconfirmed locations"
+        )
+
+    return validated
 
 
 if __name__ == "__main__":
