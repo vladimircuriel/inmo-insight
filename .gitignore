@@ -29,3 +29,7 @@ docker-compose.override.yml
 # Logs
 *.log
 logs/
+
+# Generated data files
+data/*.csv
+airflow/dags/data/
