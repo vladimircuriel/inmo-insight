@@ -146,9 +146,8 @@ def create_table_if_not_exists(engine: Engine) -> None:
     CREATE INDEX IF NOT EXISTS idx_{TABLE_NAME}_site_id ON {TABLE_NAME}(site_id);
     """
 
-    with engine.connect() as conn:
+    with engine.begin() as conn:
         conn.execute(text(create_table_sql))
-        conn.commit()
 
     logger.info(f"Table '{TABLE_NAME}' is ready")
 
@@ -207,9 +206,8 @@ def load_to_database(
 
     # For 'replace' mode, we drop and recreate to handle schema changes
     if if_exists == "replace":
-        with engine.connect() as conn:
+        with engine.begin() as conn:
             conn.execute(text(f"DROP TABLE IF EXISTS {TABLE_NAME}"))
-            conn.commit()
         create_table_if_not_exists(engine)
 
     # Use pandas to_sql for simple insertion
