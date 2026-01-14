@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 from common.constants import OPENAI_ENRICHMENT_SYSTEM_PROMPT
+from common.santiago_geolocation import get_santiago_coordinates
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -39,24 +40,17 @@ BATCH_ENDPOINT = "/v1/chat/completions"
 
 # Enrichment fields that will be added by OpenAI
 ENRICHMENT_FIELDS: list[str] = [
-    # Conflict detection fields
-    "latitude",
-    "longitude",
-    "city_validated",
     "city_conflict",
     "location_conflict",
     "construction_meters_conflict",
     "elevators_conflict",
     "rent_mentions_conflict",
-    # Text extraction fields
     "construction_meters_text",
     "elevators_text",
     "rent_text",
-    # Room features
     "service_room",
     "service_bath",
     "walk_in_closet",
-    # Amenities
     "has_pool",
     "has_gym",
     "has_terrace",
@@ -64,7 +58,6 @@ ENRICHMENT_FIELDS: list[str] = [
     "has_kids_area",
     "has_multiuse_room",
     "has_gazebo",
-    # Building features
     "full_power_plant",
     "water_cistern",
     "water_well",
@@ -72,10 +65,8 @@ ENRICHMENT_FIELDS: list[str] = [
     "security_cameras",
     "electric_gate",
     "security_24_7",
-    # Commercial info
     "negotiable",
     "maintenance_mentioned",
-    # Contact info
     "has_contact_phone",
     "phone_text",
     "agent_name_text",
@@ -388,11 +379,48 @@ def enrich_supercasas_data(
     )
     logger.info(f"Enriched {len(enriched_data)} apartments")
 
+    # Apply local geolocation mapping
+    logger.info("Applying local geolocation mapping...")
+    for row in enriched_data:
+        location = row.get("location", "")
+        lat, lon, city_validated = get_santiago_coordinates(location)
+        row["latitude"] = lat
+        row["longitude"] = lon
+        row["city_validated"] = city_validated
+
     # Filter out apartments not validated as Santiago, RD
     validated_data = filter_validated_locations(enriched_data=enriched_data)
     logger.info(f"Validated {len(validated_data)} apartments in Santiago, RD")
 
     return validated_data
+
+
+def enrich_geolocation_local(row: dict[str, Any]) -> dict[str, Any]:
+    """
+    Enrich a row with latitude, longitude, and city_validated using local mapping.
+    """
+    location = row.get("location", "")
+    lat, lon, city_validated = get_santiago_coordinates(location)
+    row["latitude"] = lat
+    row["longitude"] = lon
+    row["city_validated"] = city_validated
+    return row
+
+
+def enrich_supercasas_data_local(
+    transformed_data: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """
+    Enrich transformed apartment data using local geolocation mapping.
+    Args:
+        transformed_data: List of transformed apartment dictionaries
+    Returns:
+        Enriched data list with geolocation fields
+    """
+    enriched = [enrich_geolocation_local(row.copy()) for row in transformed_data]
+    # Puedes filtrar aquí si solo quieres los validados:
+    # enriched = [row for row in enriched if row["city_validated"]]
+    return enriched
 
 
 def filter_validated_locations(

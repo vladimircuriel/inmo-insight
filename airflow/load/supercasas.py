@@ -77,6 +77,9 @@ def create_table_if_not_exists(engine: Engine) -> None:
         -- Location
         city VARCHAR(100),
         location VARCHAR(255),
+        latitude NUMERIC,
+        longitude NUMERIC,
+        city_validated BOOLEAN,
         
         -- Property details
         previous_owners VARCHAR(100),
@@ -101,9 +104,9 @@ def create_table_if_not_exists(engine: Engine) -> None:
         rent_mentions_conflict BOOLEAN,
         
         -- Enrichment: Text extraction
-        construction_meters_text VARCHAR(100),
-        elevators_text VARCHAR(100),
-        rent_text VARCHAR(255),
+        construction_meters_text TEXT,
+        elevators_text TEXT,
+        rent_text TEXT,
         
         -- Enrichment: Room features
         service_room BOOLEAN,
@@ -134,8 +137,8 @@ def create_table_if_not_exists(engine: Engine) -> None:
         
         -- Enrichment: Contact info
         has_contact_phone BOOLEAN,
-        phone_text VARCHAR(100),
-        agent_name_text VARCHAR(255),
+        phone_text TEXT,
+        agent_name_text TEXT,
         
         -- Metadata
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
