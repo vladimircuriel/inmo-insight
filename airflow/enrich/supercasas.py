@@ -21,7 +21,6 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 from common.constants import OPENAI_ENRICHMENT_SYSTEM_PROMPT
-from common.santiago_geolocation import get_santiago_coordinates
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -377,14 +376,6 @@ def enrich_supercasas_data(
         enrichments=enrichments,
     )
     logger.info(f"Enriched {len(enriched_data)} apartments")
-
-    # Apply local geolocation mapping
-    logger.info("Applying local geolocation mapping...")
-    for row in enriched_data:
-        location = row.get("location", "")
-        lat, lon = get_santiago_coordinates(location)
-        row["latitude"] = lat
-        row["longitude"] = lon
 
     return enriched_data
 

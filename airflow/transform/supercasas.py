@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from common.utils import get_usd_to_dop_rate
+from common.santiago_geolocation import get_santiago_coordinates
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -125,7 +126,11 @@ def parse_price(raw_value: str | None) -> dict[str, Any]:
     if currency is None or amount is None:
         return result
 
-    amount_dop = amount if currency == "DOP" else amount * USD_TO_DOP_RATE
+    amount_dop = (
+        amount
+        if currency == "DOP"
+        else round(number=amount * USD_TO_DOP_RATE, ndigits=2)
+    )
 
     result["amount"] = amount
     result["currency"] = currency
@@ -254,6 +259,11 @@ def transform_apartment(raw_data: dict[str, Any]) -> dict[str, Any]:
     location_info = parse_location(raw_data.get("location"))
     transformed["city"] = location_info["city"]
     transformed["location"] = location_info["location"]
+
+    # Apply local geolocation mapping
+    lat, lon = get_santiago_coordinates(location_info["location"] or "")
+    transformed["latitude"] = lat
+    transformed["longitude"] = lon
 
     # Parse general info numeric fields
     transformed["construction_meters"] = parse_numeric(

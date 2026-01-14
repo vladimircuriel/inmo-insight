@@ -6,8 +6,6 @@ HEADERS: dict[str, str] = {
 }
 
 USD_TO_DOP_RATE = 64
-US_THRESHOLD = 10_000.00
-RD_THRESHOLD_FOR_RENT = 1_000_000.00
 
 OPENAI_ENRICHMENT_SYSTEM_PROMPT = """Role: real estate data validator and enricher for properties in Santiago, Dominican Republic.
 
