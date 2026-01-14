@@ -140,36 +140,32 @@ def normalize(s: str) -> str:
 _NORMALIZED_BARRIOS = {normalize(k): v for k, v in SANTIAGO_BARRIOS.items()}
 
 
-def get_santiago_coordinates(location: str):
+def get_santiago_coordinates(location: str) -> tuple[float, float]:
     """
     Get coordinates for a neighborhood/sector in Santiago, RD.
 
-    Returns (lat, lon, city_validated) tuple.
-    If location is not recognized, returns Santiago center coordinates
-    with city_validated=True (assumes all data comes from Santiago area).
+    Returns (lat, lon) tuple.
+    If location is not recognized, returns Santiago center coordinates.
     """
     if not location:
-        return SANTIAGO_CENTER[0], SANTIAGO_CENTER[1], True
+        return SANTIAGO_CENTER
 
     key = location.strip().lower()
 
     # Direct lookup
     if key in SANTIAGO_BARRIOS:
-        lat, lon = SANTIAGO_BARRIOS[key]
-        return lat, lon, True
+        return SANTIAGO_BARRIOS[key]
 
     # Normalized lookup (without accents)
     norm_key = normalize(key)
     if norm_key in _NORMALIZED_BARRIOS:
-        lat, lon = _NORMALIZED_BARRIOS[norm_key]
-        return lat, lon, True
+        return _NORMALIZED_BARRIOS[norm_key]
 
     # Partial match: if neighborhood contains or is contained in location
     for barrio, coords in SANTIAGO_BARRIOS.items():
         norm_barrio = normalize(barrio)
         if norm_barrio in norm_key or norm_key in norm_barrio:
-            return coords[0], coords[1], True
+            return coords
 
-    # If not found, use Santiago center but validate as True
-    # (assumes data comes from Santiago since scraper only fetches from there)
-    return SANTIAGO_CENTER[0], SANTIAGO_CENTER[1], True
+    # If not found, use Santiago center
+    return SANTIAGO_CENTER

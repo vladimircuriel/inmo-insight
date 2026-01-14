@@ -50,7 +50,6 @@ Extraction logic:
 
 Fields to add:
 
-city_conflict
 location_conflict
 construction_meters_conflict
 elevators_conflict

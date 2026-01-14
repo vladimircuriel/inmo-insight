@@ -79,7 +79,6 @@ def create_table_if_not_exists(engine: Engine) -> None:
         location VARCHAR(255),
         latitude NUMERIC,
         longitude NUMERIC,
-        city_validated BOOLEAN,
         
         -- Property details
         previous_owners VARCHAR(100),
@@ -97,7 +96,6 @@ def create_table_if_not_exists(engine: Engine) -> None:
         observations TEXT,
         
         -- Enrichment: Conflict detection
-        city_conflict BOOLEAN,
         location_conflict BOOLEAN,
         construction_meters_conflict BOOLEAN,
         elevators_conflict BOOLEAN,

@@ -40,7 +40,6 @@ BATCH_ENDPOINT = "/v1/chat/completions"
 
 # Enrichment fields that will be added by OpenAI
 ENRICHMENT_FIELDS: list[str] = [
-    "city_conflict",
     "location_conflict",
     "construction_meters_conflict",
     "elevators_conflict",
@@ -383,81 +382,11 @@ def enrich_supercasas_data(
     logger.info("Applying local geolocation mapping...")
     for row in enriched_data:
         location = row.get("location", "")
-        lat, lon, city_validated = get_santiago_coordinates(location)
+        lat, lon = get_santiago_coordinates(location)
         row["latitude"] = lat
         row["longitude"] = lon
-        row["city_validated"] = city_validated
 
-    # Filter out apartments not validated as Santiago, RD
-    validated_data = filter_validated_locations(enriched_data=enriched_data)
-    logger.info(f"Validated {len(validated_data)} apartments in Santiago, RD")
-
-    return validated_data
-
-
-def enrich_geolocation_local(row: dict[str, Any]) -> dict[str, Any]:
-    """
-    Enrich a row with latitude, longitude, and city_validated using local mapping.
-    """
-    location = row.get("location", "")
-    lat, lon, city_validated = get_santiago_coordinates(location)
-    row["latitude"] = lat
-    row["longitude"] = lon
-    row["city_validated"] = city_validated
-    return row
-
-
-def enrich_supercasas_data_local(
-    transformed_data: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    """
-    Enrich transformed apartment data using local geolocation mapping.
-    Args:
-        transformed_data: List of transformed apartment dictionaries
-    Returns:
-        Enriched data list with geolocation fields
-    """
-    enriched = [enrich_geolocation_local(row.copy()) for row in transformed_data]
-    # Puedes filtrar aquí si solo quieres los validados:
-    # enriched = [row for row in enriched if row["city_validated"]]
-    return enriched
-
-
-def filter_validated_locations(
-    enriched_data: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    """
-    Filter enriched data to only include apartments validated as being in Santiago, RD.
-
-    Args:
-        enriched_data: List of enriched apartment dictionaries
-
-    Returns:
-        Filtered list with only validated locations
-    """
-    validated: list[dict[str, Any]] = []
-    discarded: list[dict[str, Any]] = []
-
-    for row in enriched_data:
-        city_validated = row.get(
-            "city_validated", True
-        )  # Default to True for backwards compatibility
-
-        if city_validated:
-            validated.append(row)
-        else:
-            discarded.append(row)
-            logger.warning(
-                f"Discarding apartment {row.get('site_id', 'unknown')} - "
-                f"location '{row.get('location', 'unknown')}' not validated as Santiago, RD"
-            )
-
-    if discarded:
-        logger.info(
-            f"Discarded {len(discarded)} apartments with invalid/unconfirmed locations"
-        )
-
-    return validated
+    return enriched_data
 
 
 if __name__ == "__main__":
