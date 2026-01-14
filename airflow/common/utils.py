@@ -62,3 +62,49 @@ def fetch_html(
 
     html: BeautifulSoup = parse_html(html_string=response.text)
     return html, None
+
+
+# Currency exchange API
+FX_RATES_API_URL = "https://api.fxratesapi.com/latest"
+FALLBACK_USD_TO_DOP = 64.0  # Fallback rate if API fails
+
+
+def get_usd_to_dop_rate() -> float:
+    """
+    Fetch current USD to DOP exchange rate from fxratesapi.com.
+
+    Returns:
+        float: The USD to DOP exchange rate, or fallback value if API fails.
+    """
+    try:
+        response = requests.get(url=FX_RATES_API_URL, timeout=10)
+        response.raise_for_status()
+
+        data = response.json()
+
+        if not data.get("success", False):
+            logger.warning("FX API responded with success=false, using fallback rate")
+            return FALLBACK_USD_TO_DOP
+
+        rates = data.get("rates", {})
+        dop_rate = rates.get("DOP")
+
+        if dop_rate is None:
+            logger.warning("DOP rate not found in API response, using fallback rate")
+            return FALLBACK_USD_TO_DOP
+
+        # API returns rates relative to EUR base, so we need USD to DOP
+        usd_rate = rates.get("USD")
+        if usd_rate is None or usd_rate == 0:
+            logger.warning("USD rate not found in API response, using fallback rate")
+            return FALLBACK_USD_TO_DOP
+
+        # Calculate USD to DOP: DOP/USD
+        usd_to_dop = dop_rate / usd_rate
+
+        logger.info(f"Fetched USD to DOP rate: {usd_to_dop:.2f}")
+        return usd_to_dop
+
+    except Exception as e:
+        logger.warning(f"Failed to fetch exchange rate: {e}, using fallback rate")
+        return FALLBACK_USD_TO_DOP
