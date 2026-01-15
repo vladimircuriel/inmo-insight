@@ -2,8 +2,9 @@
    InmoInsight - Housing Market Data-Driven Analysis
 </h1>
 
-<p align="center"> 
-  <img src="https://github.com/user-attachments/assets/inmoinsight-logo" alt="InmoInsight" width="400"/> 
+<p align="center">
+
+  <img src="https://github.com/user-attachments/assets/b4ae9855-d4b9-4dc2-bad3-9d6bdab256d8" alt="InmoInsight" width="400"/> 
 </p>
 
 <div align="center">  
